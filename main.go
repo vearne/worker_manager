@@ -41,17 +41,17 @@ func prepareAllWorker() * libs.WorkerManager{
 	// workerA
 	WorkerACount := 2
 	for i:=0; i< WorkerACount; i++{
-		wm.AddWorker(libs.WorkerA{Name:"WorkerA"})
+		wm.AddWorker(&libs.WorkerA{Name:"WorkerA"})
 	}
 	// workerB
 	WorkerBCount := 3
 	for i:=0; i< WorkerBCount; i++{
-		wm.AddWorker(libs.WorkerB{Name:"WorkerB"})
+		wm.AddWorker(&libs.WorkerB{Name:"WorkerB"})
 	}
 	// workerC
 	WorkerCCount := 4
 	for i:=0; i< WorkerCCount; i++{
-		wm.AddWorker(libs.WorkerC{Name:"WorkerC"})
+		wm.AddWorker(&libs.WorkerC{Name:"WorkerC"})
 	}
 	return wm
 }

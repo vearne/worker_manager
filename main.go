@@ -1,6 +1,7 @@
 package main 
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 	"os/signal"
@@ -25,34 +26,26 @@ func main() {
 
 func GracefulExit(wm * libs.WorkerManager){
 	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGTERM)
-	switch <-ch {
-	case syscall.SIGTERM:
-		wm.Stop()
-		break
-	}
+	signal.Notify(ch, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
+	sig := <-ch
+	fmt.Println("got a signal", sig)
+	wm.Stop()
 }
 
 
 func prepareAllWorker() * libs.WorkerManager{
 	wm := libs.NewWorkerManager()
-
-
 	// workerA
 	WorkerACount := 2
 	for i:=0; i< WorkerACount; i++{
-		wm.AddWorker(&libs.WorkerA{Name:"WorkerA"})
+		wm.AddWorker(libs.NewWorkerA("WorkerA"))
 	}
 	// workerB
 	WorkerBCount := 3
 	for i:=0; i< WorkerBCount; i++{
-		wm.AddWorker(&libs.WorkerB{Name:"WorkerB"})
+		wm.AddWorker(libs.NewWorkerB("WorkerB"))
 	}
-	// workerC
-	WorkerCCount := 4
-	for i:=0; i< WorkerCCount; i++{
-		wm.AddWorker(&libs.WorkerC{Name:"WorkerC"})
-	}
+
 	return wm
 }
 

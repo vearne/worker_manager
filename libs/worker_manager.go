@@ -1,52 +1,68 @@
 package libs
 
 import (
-	"sync"
 	"fmt"
+	"sync"
+	"runtime"
 )
 
-type Worker interface{
+type Worker interface {
 	Start()
 	Stop()
 }
 
-type  WorkerManager struct {
+type WorkerManager struct {
 	sync.WaitGroup
 	// 保存所有worker
 	WorkerSlice []Worker
 }
 
-func NewWorkerManager() *WorkerManager{
+func Stack() []byte {
+	buf := make([]byte, 2048)
+	n := runtime.Stack(buf, false)
+	return buf[:n]
+}
+
+
+func NewWorkerManager() *WorkerManager {
 	workerManager := WorkerManager{}
 	workerManager.WorkerSlice = make([]Worker, 0, 10)
 	return &workerManager
 }
 
-func (wm *WorkerManager) AddWorker(w Worker){
+func (wm *WorkerManager) AddWorker(w Worker) {
 	wm.WorkerSlice = append(wm.WorkerSlice, w)
-	fmt.Println("size", len(wm.WorkerSlice), wm.WorkerSlice)
 }
 
-func (wm *WorkerManager) Start(){
+func (wm *WorkerManager) Start() {
 	wm.Add(len(wm.WorkerSlice))
-	for _, worker := range wm.WorkerSlice{
-		go func(w Worker){
-			fmt.Printf("start worker:%v\n", w)
+	for _, worker := range wm.WorkerSlice {
+		go func(w Worker) {
+			defer func() {
+				err := recover()
+				if err != nil {
+					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
+						err, string(Stack()))
+				}
+			}()
 			w.Start()
 		}(worker)
 	}
 }
 
-func (wm *WorkerManager) Stop(){
+func (wm *WorkerManager) Stop() {
+	for _, worker := range wm.WorkerSlice {
+		go func(w Worker) {
+			defer func() {
+				err := recover()
+				if err != nil {
+					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
+						err, string(Stack()))
+				}
+			}()
 
-	for _, worker := range wm.WorkerSlice{
-		go func(w Worker){
-			fmt.Printf("stop worker:%v\n", w)
 			w.Stop()
 			wm.Done()
 		}(worker)
 	}
 }
-
-
-

@@ -1,6 +1,10 @@
 # 可以切换到工程目录下
 # 执行
 ```
+go get github.com/vearne/worker_manager
+```
+
+```
 package main
 
 import (
@@ -140,4 +144,26 @@ go build main.go
 # 服务退出, 发出SIGTERM信号，服务优雅退出
 # 请求自行替换pid的值
 kill -15 <pid> 
+```
+output
+```
+2019/08/23 14:28:41 [start]LoadWorker
+2019/08/23 14:28:41 [start]LoadWorker
+2019/08/23 14:28:41 [start]WebServer
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /                         --> main.(*WebServer).Start.func1 (3 handlers)
+2019/08/23 14:28:58 got signal
+2019/08/23 14:28:58 WebServer exit...
+2019/08/23 14:28:58 [end]WebServer exit
+2019/08/23 14:28:58 LoadWorker exit...
+2019/08/23 14:28:58 LoadWorker execute exit logic
+2019/08/23 14:28:58 LoadWorker exit...
+2019/08/23 14:28:58 LoadWorker execute exit logic
+2019/08/23 14:28:58 [end]LoadWorker
+2019/08/23 14:28:58 [end]LoadWorker
 ```

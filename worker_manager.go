@@ -1,9 +1,9 @@
-package libs
+package worker_manager
 
 import (
 	"fmt"
-	"sync"
 	"runtime"
+	"sync"
 )
 
 type Worker interface {
@@ -22,7 +22,6 @@ func Stack() []byte {
 	n := runtime.Stack(buf, false)
 	return buf[:n]
 }
-
 
 func NewWorkerManager() *WorkerManager {
 	workerManager := WorkerManager{}

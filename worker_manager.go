@@ -42,6 +42,7 @@ func (wm *WorkerManager) Start() {
 				if err != nil {
 					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
 						err, string(Stack()))
+					wm.Done()
 				}
 			}()
 			w.Start()

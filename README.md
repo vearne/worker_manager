@@ -35,6 +35,7 @@ func main() {
 
 func GracefulExit(wm *manager.WorkerManager) {
 	ch := make(chan os.Signal, 1)
+	signal.Notify(ch)
 	for sig := range ch {
 		switch sig {
 		case syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT:

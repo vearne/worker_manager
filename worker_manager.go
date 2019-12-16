@@ -40,8 +40,8 @@ func (wm *WorkerManager) Start() {
 			defer func() {
 				r := recover()
 				if r != nil {
-					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
-						err, string(Stack()))
+					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
+						r, string(Stack()))
 					wm.Done()
 				}
 			}()
@@ -56,8 +56,8 @@ func (wm *WorkerManager) Stop() {
 			defer func() {
 				r := recover()
 				if r != nil {
-					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
-						err, string(Stack()))
+					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
+						r, string(Stack()))
 				}
 			}()
 

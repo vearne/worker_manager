@@ -38,8 +38,8 @@ func (wm *WorkerManager) Start() {
 	for _, worker := range wm.WorkerSlice {
 		go func(w Worker) {
 			defer func() {
-				err := recover()
-				if err != nil {
+				r := recover()
+				if r != nil {
 					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
 						err, string(Stack()))
 					wm.Done()
@@ -54,8 +54,8 @@ func (wm *WorkerManager) Stop() {
 	for _, worker := range wm.WorkerSlice {
 		go func(w Worker) {
 			defer func() {
-				err := recover()
-				if err != nil {
+				r := recover()
+				if r != nil {
 					fmt.Printf("WorkerManager error, error:%v, stack:%v\n",
 						err, string(Stack()))
 				}

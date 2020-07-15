@@ -1,9 +1,9 @@
-# 可以切换到工程目录下
-# 执行
+
+### 安装依赖包
 ```
 go get github.com/vearne/worker_manager
 ```
-
+### Example
 ```
 package main
 

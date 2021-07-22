@@ -3,15 +3,16 @@
 
 ---
 ### Overview
-Use observer partern to easily manage the start and stop of workers.
+使用观察者模式来方便的管理worker的启动和停止。
 
-* [中文 README](https://github.com/vearne/worker_manager/blob/master/README_zh.md)
+* [English README](https://github.com/vearne/worker_manager/blob/master/README.md)
 
-### How to get
+
+### 安装
 ```
 go get github.com/vearne/worker_manager
 ```
-### Example
+### 示例
 ```
 package main
 
@@ -153,10 +154,10 @@ func (worker *WebServer) Stop() {
 
 ```
 go build main.go
-# Start service
+# 启动服务
 ./main
-# Send a SIGTERM signal to make the service exit gracefully
-# Please replace pid by yourself
+# 服务退出, 发出SIGTERM信号，服务优雅退出
+# 请自行替换pid的值
 kill -15 <pid> 
 ```
 output

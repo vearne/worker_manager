@@ -3,95 +3,62 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	manager "github.com/vearne/worker_manager"
+	wm "github.com/vearne/worker_manager"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
 func main() {
-	// 1. init some worker
-	wm := prepareAllWorker()
-
-	// 2. start
-	wm.Start()
-
-	// 3. register grace exit
-	GracefulExit(wm)
-
-	// 4. block and wait
-	wm.Wait()
-}
-
-func GracefulExit(wm *manager.WorkerManager) {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch)
-	for sig := range ch {
-		switch sig {
-		case syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT:
-			log.Println("got a signal, execute stop", sig)
-			close(ch)
-			wm.Stop()
-		case syscall.SIGPIPE:
-			log.Println("got a signal, ignore", sig)
-		default:
-			log.Println("got a signal, default", sig)
-		}
-	}
-}
-
-func prepareAllWorker() *manager.WorkerManager {
-	wm := manager.NewWorkerManager()
-	// load worker
-	WorkerCount := 2
-	for i := 0; i < WorkerCount; i++ {
-		wm.AddWorker(NewLoadWorker())
-	}
-	// web server
-	wm.AddWorker(NewWebServer())
-
-	return wm
+	app := wm.NewApp()
+	// add 2 load worker
+	app.AddWorker(NewLoadWorker())
+	app.AddWorker(NewLoadWorker())
+	// add 1 web worker
+	app.AddWorker(NewWebServer())
+	// If not set, the default value will be used
+	//app.SetSigs(syscall.SIGTERM, syscall.SIGQUIT)
+	app.Run()
 }
 
 // some worker
 
 type LoadWorker struct {
-	RunningFlag bool // is running? true:running false:stoped
-	ExitedFlag  bool //  Exit Flag
+	RunningFlag *wm.BoolFlag
+	ExitedFlag  *wm.BoolFlag
 	ExitChan    chan struct{}
 }
 
 func NewLoadWorker() *LoadWorker {
-	worker := &LoadWorker{RunningFlag: true, ExitedFlag: false}
+	worker := &LoadWorker{}
+	worker.RunningFlag = wm.NewBoolFlag()
+	worker.ExitedFlag = wm.NewBoolFlag()
+	wm.SetTrue(worker.RunningFlag)
+	wm.SetTrue(worker.ExitedFlag)
 	worker.ExitChan = make(chan struct{})
 	return worker
 }
 
 func (worker *LoadWorker) Start() {
 	log.Println("[start]LoadWorker")
-	for worker.RunningFlag {
+	for wm.IsTrue(worker.RunningFlag) {
 		select {
 		case <-time.After(1 * time.Minute):
 			//do some thing
 			log.Println("LoadWorker do something")
 			time.Sleep(time.Second * 3)
-
 		case <-worker.ExitChan:
 			log.Println("LoadWorker execute exit logic")
 		}
-
 	}
-	worker.ExitedFlag = true
+	wm.SetTrue(worker.ExitedFlag)
 }
 
 func (worker *LoadWorker) Stop() {
 	log.Println("LoadWorker exit...")
-	worker.RunningFlag = false
+	wm.SetFalse(worker.RunningFlag)
 	close(worker.ExitChan)
-	for !worker.ExitedFlag {
+	for !wm.IsTrue(worker.ExitedFlag) {
 		time.Sleep(50 * time.Millisecond)
 	}
 	log.Println("[end]LoadWorker")

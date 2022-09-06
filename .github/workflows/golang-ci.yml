@@ -37,6 +37,6 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.18
       - name: golangci-lint
         run: rm -rf example && golangci-lint run --modules-download-mode=vendor

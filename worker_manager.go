@@ -27,7 +27,7 @@ func (wm *WorkerManager) AddWorker(w Worker) {
 }
 
 func (wm *WorkerManager) Start() {
-	wm.Add(len(wm.WorkerSlice))
+	wm.Add(len(wm.WorkerSlice)) //nolint: typecheck
 	for _, worker := range wm.WorkerSlice {
 		go func(w Worker) {
 			defer func() {
@@ -35,7 +35,7 @@ func (wm *WorkerManager) Start() {
 				if r != nil {
 					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
 						r, debug.Stack())
-					wm.Done()
+					wm.Done() //nolint: typecheck
 				}
 			}()
 			w.Start()
@@ -55,7 +55,7 @@ func (wm *WorkerManager) Stop() {
 			}()
 
 			w.Stop()
-			wm.Done()
+			wm.Done() //nolint: typecheck
 		}(worker)
 	}
 }

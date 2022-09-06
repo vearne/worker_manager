@@ -40,5 +40,5 @@ func (a *App) Run() {
 		a.wm.Stop()
 	}()
 	a.wm.Start()
-	a.wm.Wait()
+	a.wm.Wait() //nolint: typecheck
 }

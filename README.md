@@ -39,24 +39,22 @@ func main() {
 // some worker
 
 type LoadWorker struct {
-	RunningFlag *wm.BoolFlag
-	ExitedFlag  *wm.BoolFlag
+	RunningFlag *wm.AtomicBool
+	ExitedFlag  *wm.AtomicBool
 	ExitChan    chan struct{}
 }
 
 func NewLoadWorker() *LoadWorker {
 	worker := &LoadWorker{}
-	worker.RunningFlag = wm.NewBoolFlag()
-	worker.ExitedFlag = wm.NewBoolFlag()
-	wm.SetTrue(worker.RunningFlag)
-	wm.SetTrue(worker.ExitedFlag)
+	worker.RunningFlag = wm.NewAtomicBool(true)
+	worker.ExitedFlag = wm.NewAtomicBool(true)
 	worker.ExitChan = make(chan struct{})
 	return worker
 }
 
 func (worker *LoadWorker) Start() {
 	log.Println("[start]LoadWorker")
-	for wm.IsTrue(worker.RunningFlag) {
+	for worker.RunningFlag.IsTrue() {
 		select {
 		case <-time.After(1 * time.Minute):
 			//do some thing
@@ -66,14 +64,14 @@ func (worker *LoadWorker) Start() {
 			log.Println("LoadWorker execute exit logic")
 		}
 	}
-	wm.SetTrue(worker.ExitedFlag)
+	worker.ExitedFlag.Set(true)
 }
 
 func (worker *LoadWorker) Stop() {
 	log.Println("LoadWorker exit...")
-	wm.SetFalse(worker.RunningFlag)
+	worker.RunningFlag.Set(false)
 	close(worker.ExitChan)
-	for !wm.IsTrue(worker.ExitedFlag) {
+	for !worker.ExitedFlag.IsTrue() {
 		time.Sleep(50 * time.Millisecond)
 	}
 	log.Println("[end]LoadWorker")

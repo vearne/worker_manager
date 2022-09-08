@@ -25,14 +25,14 @@ func main() {
 
 type LoadWorker struct {
 	RunningFlag *wm.AtomicBool
-	ExitedFlag  *wm.AtomicBool
+	ExitedFlag  chan struct{}
 	ExitChan    chan struct{}
 }
 
 func NewLoadWorker() *LoadWorker {
 	worker := &LoadWorker{}
 	worker.RunningFlag = wm.NewAtomicBool(true)
-	worker.ExitedFlag = wm.NewAtomicBool(true)
+	worker.ExitedFlag = make(chan struct{})
 	worker.ExitChan = make(chan struct{})
 	return worker
 }
@@ -46,19 +46,19 @@ func (worker *LoadWorker) Start() {
 			log.Println("LoadWorker do something")
 			time.Sleep(time.Second * 3)
 		case <-worker.ExitChan:
+			// do some clean task
 			log.Println("LoadWorker execute exit logic")
 		}
 	}
-	worker.ExitedFlag.Set(true)
+	close(worker.ExitedFlag)
 }
 
 func (worker *LoadWorker) Stop() {
 	log.Println("LoadWorker exit...")
 	worker.RunningFlag.Set(false)
 	close(worker.ExitChan)
-	for !worker.ExitedFlag.IsTrue() {
-		time.Sleep(50 * time.Millisecond)
-	}
+
+	<-worker.ExitedFlag
 	log.Println("[end]LoadWorker")
 }
 

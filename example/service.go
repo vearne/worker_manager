@@ -6,6 +6,7 @@ import (
 	wm "github.com/vearne/worker_manager"
 	"log"
 	"net/http"
+	"syscall"
 	"time"
 )
 
@@ -16,8 +17,13 @@ func main() {
 	app.AddWorker(NewLoadWorker())
 	// add 1 web worker
 	app.AddWorker(NewWebServer())
+
+	// optional
 	// If not set, the default value will be used
-	//app.SetSigs(syscall.SIGTERM, syscall.SIGQUIT)
+	app.SetExitSigs(syscall.SIGTERM, syscall.SIGQUIT)
+	// optional
+	// Configuring Ignore Signals
+	app.SetIgnoreSigs(syscall.SIGINT)
 	app.Run()
 }
 
@@ -78,7 +84,7 @@ func (worker *WebServer) Start() {
 		c.Data(http.StatusOK, "text/plain", []byte("hello world!"))
 	})
 	worker.Server = &http.Server{
-		Addr:           ":8080",
+		Addr:           ":9527",
 		Handler:        ginHandler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,

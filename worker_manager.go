@@ -1,6 +1,7 @@
 package worker_manager
 
 import (
+	"expvar"
 	"fmt"
 	"runtime/debug"
 	"sync"
@@ -13,12 +14,14 @@ type Worker interface {
 
 type WorkerManager struct {
 	sync.WaitGroup
-	WorkerSlice []Worker
+	aliveWorkerNum *expvar.Int
+	WorkerSlice    []Worker
 }
 
 func NewWorkerManager() *WorkerManager {
 	workerManager := WorkerManager{}
 	workerManager.WorkerSlice = make([]Worker, 0, 10)
+	workerManager.aliveWorkerNum = expvar.NewInt("aliveWorkerNum")
 	return &workerManager
 }
 
@@ -28,6 +31,7 @@ func (wm *WorkerManager) AddWorker(w Worker) {
 
 func (wm *WorkerManager) Start() {
 	wm.Add(len(wm.WorkerSlice)) //nolint: typecheck
+	wm.aliveWorkerNum.Set(int64(len(wm.WorkerSlice)))
 	for _, worker := range wm.WorkerSlice {
 		go func(w Worker) {
 			defer func() {
@@ -36,6 +40,7 @@ func (wm *WorkerManager) Start() {
 					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
 						r, debug.Stack())
 					wm.Done() //nolint: typecheck
+					wm.aliveWorkerNum.Add(-1)
 				}
 			}()
 			w.Start()
@@ -56,6 +61,7 @@ func (wm *WorkerManager) Stop() {
 
 			w.Stop()
 			wm.Done() //nolint: typecheck
+			wm.aliveWorkerNum.Add(-1)
 		}(worker)
 	}
 }

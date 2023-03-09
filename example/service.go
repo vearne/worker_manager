@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"expvar"
 	"github.com/gin-gonic/gin"
 	wm "github.com/vearne/worker_manager"
 	"log"
@@ -83,6 +84,7 @@ func (worker *WebServer) Start() {
 	ginHandler.GET("/", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/plain", []byte("hello world!"))
 	})
+	ginHandler.GET("/debug/vars", gin.WrapH(expvar.Handler()))
 	worker.Server = &http.Server{
 		Addr:           ":9527",
 		Handler:        ginHandler,

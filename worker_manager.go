@@ -38,7 +38,7 @@ func (wm *WorkerManager) Start() {
 				r := recover()
 				if r != nil {
 					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
-						r, debug.Stack())
+						r, string(debug.Stack()))
 					wm.Done() //nolint: typecheck
 					wm.aliveWorkerNum.Add(-1)
 				}
@@ -55,7 +55,7 @@ func (wm *WorkerManager) Stop() {
 				r := recover()
 				if r != nil {
 					fmt.Printf("WorkerManager error, recover:%v, stack:%v\n",
-						r, debug.Stack())
+						r, string(debug.Stack()))
 				}
 			}()
 

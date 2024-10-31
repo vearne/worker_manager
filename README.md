@@ -20,10 +20,12 @@ package main
 
 import (
 	"context"
+	"expvar"
 	"github.com/gin-gonic/gin"
 	wm "github.com/vearne/worker_manager"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -48,14 +50,14 @@ func main() {
 // some worker
 
 type LoadWorker struct {
-	RunningFlag *wm.AtomicBool
+	RunningFlag atomic.Bool
 	ExitedFlag  chan struct{}
 	ExitChan    chan struct{}
 }
 
 func NewLoadWorker() *LoadWorker {
 	worker := &LoadWorker{}
-	worker.RunningFlag = wm.NewAtomicBool(true)
+	worker.RunningFlag.Store(true)
 	worker.ExitedFlag = make(chan struct{})
 	worker.ExitChan = make(chan struct{})
 	return worker
@@ -63,7 +65,7 @@ func NewLoadWorker() *LoadWorker {
 
 func (worker *LoadWorker) Start() {
 	log.Println("[start]LoadWorker")
-	for worker.RunningFlag.IsTrue() {
+	for worker.RunningFlag.Load() {
 		select {
 		case <-time.After(1 * time.Minute):
 			//do some thing
@@ -79,7 +81,7 @@ func (worker *LoadWorker) Start() {
 
 func (worker *LoadWorker) Stop() {
 	log.Println("LoadWorker exit...")
-	worker.RunningFlag.Set(false)
+	worker.RunningFlag.Store(false)
 	close(worker.ExitChan)
 
 	<-worker.ExitedFlag
@@ -101,6 +103,7 @@ func (worker *WebServer) Start() {
 	ginHandler.GET("/", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/plain", []byte("hello world!"))
 	})
+	ginHandler.GET("/debug/vars", gin.WrapH(expvar.Handler()))
 	worker.Server = &http.Server{
 		Addr:           ":9527",
 		Handler:        ginHandler,
